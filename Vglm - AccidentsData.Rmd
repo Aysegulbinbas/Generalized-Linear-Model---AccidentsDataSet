@@ -1,0 +1,74 @@
+---
+title: "Vector Generalized Linear Model - Accidents Data Set"
+author: "AyşegülBinbaş"
+date: "02 07 2022"
+output: word_document
+---
+
+
+#Vector Generalized Linear Model - Accidents dataset
+```{r}
+library(MASS)
+library(VGAM)
+
+library(readxl)
+accidents <- read_excel("accidents.xlsx")
+
+
+#First check data:
+
+str(accidents)
+accidents$Gender=as.factor(accidents$Gender)
+accidents$Location=as.factor(accidents$Location )
+accidents$`Seat-Belt`=as.factor(accidents$`Seat-Belt` )
+
+str(accidents)
+
+summary(accidents)
+#EDA:
+#Visualization part:
+library(ggplot2)
+library(gridExtra)
+#In order to get an idea about the data set:
+options(repr.plot.width=6, repr.plot.height=6)
+p1 <- ggplot(accidents, aes(Gender)) + geom_bar()
+p2 <- ggplot(accidents, aes(Location)) + geom_bar()
+p3 <- ggplot(accidents, aes(`Seat-Belt`)) + geom_bar()
+p4 <- ggplot(accidents, aes(`1`)) + geom_density()
+p5 <- ggplot(accidents, aes(`2`)) + geom_density()
+p6 <- ggplot(accidents, aes(`3`)) + geom_density()
+p7 <- ggplot(accidents, aes(`4`)) + geom_density()
+p8 <- ggplot(accidents, aes(`5`)) + geom_density()
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, ncol=3)
+
+
+
+
+#To see correlation : 
+
+library(psych)
+pairs.panels(accidents[,4:8])
+
+
+#To construct model :
+
+library(VGAM)
+model <- vglm(cbind(`1`,`2`,`3`,`4`,`5`)~Gender+`Seat-Belt`+Location,
+              data=accidents, family = cumulative(parallel=TRUE))
+summary(model)
+
+#It can be seen from the summary that all variables are significant.
+library(kableExtra)
+#Estimated probabilities:
+fitted(model)
+
+
+#logit(P(Y ≤ NotInjured)) = 1.201+0.551GenderMale+0.83SeatBeltYes+0.78LocationUrban
+#logit(P(Y ≤ Injured-NotTransportedbyEmergencyMedicals.)) = 1.38+ 0.55GenderMale + 0.83SeatBeltYes+0.78LocationUrban
+#logit(P(Y ≤ Injured-TransportedbyEmergencymedicals.-NotHospitalized)) = 3.24 +0.55GenderMale + 0.83SeatBeltYes + 0.78LocationUrban
+#logit(P(Y ≤ Injured-Heavily)) = 5.2 +0.55GenderMale + 0.83SeatBeltYes + 0.78LocationUrban
+
+
+
+```
+
